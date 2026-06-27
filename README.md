@@ -30,6 +30,29 @@ Even for queries based entirely on the `xdb` file, the single query response tim
 
 `xdb` provides version-compatible query implementations. A unified API can simultaneously provide queries for both IPv4 and IPv6 data and return unified data.
 
+### 6. xdb Structure Version
+
+The `xdb` format has two structure versions:
+
+| Version | Header version | Segment index layout | IPv4 index size | IPv6 index size |
+| --- | --- | --- | --- | --- |
+| 3.0 | `0` | `[start_ip][end_ip][data_len][data_ptr]` | 14 bytes | 38 bytes |
+| 4.0 | `4` | `[start_ip][data_len][data_ptr]` | 10 bytes | 22 bytes |
+
+Structure 4.0 removes `end_ip` from the segment index block:
+
+- The effective range of a segment is `[start_ip, next_segment_start_ip - 1]`.
+- The last segment extends to the maximum address of the address family.
+- The segment sequence must be globally ordered and continuous.
+
+This change reduces both the segment index size and the overall file size.
+
+> **Compatibility**
+>
+> - The built-in `data/ip2region_v4.xdb` and `data/ip2region_v6.xdb` are generated as structure 4.0.
+> - The [Golang binding](binding/golang/README.md) reads the structure version from the file header and supports both 3.0 and 4.0 files.
+> - Other language bindings in this repository currently target structure 3.0 and will fail to read 4.0 files until they are updated.
+
 
 # `xdb` Query
 

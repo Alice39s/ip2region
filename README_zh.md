@@ -30,6 +30,29 @@
 
 `xdb` 提供了版本兼容的查询实现，一个统一的 API 可以同时提供对 IPv4 和 IPv6 数据的查询并且返回统一的数据。
 
+### 6、xdb 结构版本
+
+`xdb` 目前有两种结构版本：
+
+| 版本 | 文件头版本号 | Segment 索引布局 | IPv4 索引大小 | IPv6 索引大小 |
+| --- | --- | --- | --- | --- |
+| 3.0 | `0` | `[start_ip][end_ip][data_len][data_ptr]` | 14 字节 | 38 字节 |
+| 4.0 | `4` | `[start_ip][data_len][data_ptr]` | 10 字节 | 22 字节 |
+
+4.0 格式从 segment 索引块中移除了 `end_ip`：
+
+- 每个 segment 的有效范围为 `[start_ip, 下一个 segment 的 start_ip - 1]`。
+- 最后一个 segment 延伸到该地址族的最大地址。
+- 全部 segment 必须全局有序且连续。
+
+该改动同时减小了索引体积和文件体积。
+
+> **兼容性说明**
+>
+> - 项目内置的 `data/ip2region_v4.xdb` 和 `data/ip2region_v6.xdb` 目前已按 4.0 格式生成。
+> - [Golang 查询客户端](binding/golang/README_zh.md) 会从文件头读取结构版本号，同时支持 3.0 和 4.0 文件。
+> - 本仓库中的其他语言绑定目前仅适配 3.0 格式，在相应实现更新前无法读取 4.0 文件。
+
 
 # `xdb` 查询
 

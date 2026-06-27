@@ -41,7 +41,7 @@ var (
 		Id:               4,
 		Name:             "IPv4",
 		Bytes:            4,
-		SegmentIndexSize: 14, // 4 + 4 + 2 + 4,
+		SegmentIndexSize: 10, // 4 + 2 + 4, end_ip removed
 		PutBytes: func(buff []byte, ip []byte) int {
 			// binary.LittleEndian.PutUint32(buff, binary.BigEndian.Uint32(ip))
 			// Little Endian byte order for compatible with the old searcher implementation
@@ -65,7 +65,7 @@ var (
 		Id:               6,
 		Name:             "IPv6",
 		Bytes:            16,
-		SegmentIndexSize: 38, // 16 + 16 + 2 + 4,
+		SegmentIndexSize: 22, // 16 + 2 + 4, end_ip removed
 		// Big Endian byte order to follow the network byte order
 		PutBytes: func(buff []byte, ip []byte) int {
 			return copy(buff, ip)

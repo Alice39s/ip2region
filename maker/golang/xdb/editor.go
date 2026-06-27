@@ -110,48 +110,14 @@ func (e *Editor) loadSegments() error {
 		e.toSave = true
 	}
 
-	// check and fill in the discontinuous segments
-	// to Keep the entire data continuous.
-	last = nil
-	for _, seg := range segments {
-		if last == nil {
-			if IPCompare(seg.StartIP, e.verison.Min) > 0 {
-				e.segments.PushBack(&Segment{
-					StartIP: e.verison.Min,
-					EndIP:   IPSubOne(seg.StartIP),
-					Region:  EmptyRegion,
-				})
-			}
-		} else if err := seg.RightBehind(last); err == nil {
-			// Do nothing here since it just right behind the last
-		} else if err := seg.After(last); err != nil {
-			// segments overlap
-			return fmt.Errorf("overlap checking: %w", err)
-		} else {
-			// push the padding segments
-			e.segments.PushBack(&Segment{
-				StartIP: IPAddOne(last.EndIP),
-				EndIP:   IPSubOne(seg.StartIP),
-				Region:  EmptyRegion,
-			})
-		}
-
-		// push the current segment
-		e.segments.PushBack(seg)
-
-		// reset the last
-		last = seg
+	// check and fill in the discontinuous segments to keep the entire data continuous.
+	filled, err := FillGaps(e.verison, segments)
+	if err != nil {
+		return err
 	}
 
-	// check and padding the tailing segmnet
-	if back := e.segments.Back(); back != nil {
-		if IPCompare(e.verison.Max, back.Value.(*Segment).EndIP) > 0 {
-			e.segments.PushBack(&Segment{
-				StartIP: IPAddOne(back.Value.(*Segment).EndIP),
-				EndIP:   e.verison.Max,
-				Region:  EmptyRegion,
-			})
-		}
+	for _, seg := range filled {
+		e.segments.PushBack(seg)
 	}
 
 	segments = nil // let GC do it work

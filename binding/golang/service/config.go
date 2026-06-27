@@ -83,7 +83,9 @@ func newConfig(cachePolicy int, ipVersion *xdb.Version, xdbPath string, searcher
 		return nil, err
 	}
 
-	// verify the ip version
+	// verify the ip version and use the version detected from the header.
+	// The header version determines whether the classic (with end_ip) or the
+	// new no-end_ip format is used.
 	xIpVersion, err := xdb.VersionFromHeader(header)
 	if err != nil {
 		return nil, err
@@ -92,6 +94,7 @@ func newConfig(cachePolicy int, ipVersion *xdb.Version, xdbPath string, searcher
 	if xIpVersion.Id != ipVersion.Id {
 		return nil, fmt.Errorf("ip verison not match: xdb file %s with ip version=%s, as %s expected", xdbPath, xIpVersion.Name, ipVersion.Name)
 	}
+	ipVersion = xIpVersion
 
 	// 3, check and load the vector index buffer
 	var vIndex []byte = nil

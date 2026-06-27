@@ -64,7 +64,7 @@ import (
 )
 
 const (
-	VersionNo         = 3 // since 2025/09/01 (IPv6 supporting)
+	VersionNo         = 4 // since 2025/09/01 (IPv6 supporting), end_ip removed from segment index block
 	HeaderInfoLength  = 256
 	VectorIndexRows   = 256
 	VectorIndexCols   = 256
@@ -230,6 +230,15 @@ func (m *Maker) loadSegments() error {
 		}
 	}
 
+	// check and fill in the discontinuous segments to keep the entire data continuous.
+	// @Note: this is required since we removed end_ip from the segment index block.
+	slog.Info("try to fill the discontinuous segments ...")
+	filledSegments, err := FillGaps(m.version, m.segments)
+	if err != nil {
+		return err
+	}
+	m.segments = filledSegments
+
 	slog.Info("all segments loaded", "length", len(m.segments), "merged", mergeCount, "sorting", sorting, "elapsed", time.Since(tStart))
 	return nil
 }
@@ -359,8 +368,7 @@ func (m *Maker) Start() error {
 			// But now compatibility is the most important !!!
 
 			m.version.PutBytes(indexBuff[0:], s.StartIP)
-			m.version.PutBytes(indexBuff[len(s.StartIP):], s.EndIP)
-			_offset = len(s.StartIP) + len(s.EndIP)
+			_offset = len(s.StartIP)
 			binary.LittleEndian.PutUint16(indexBuff[_offset:], uint16(dataLen))
 			binary.LittleEndian.PutUint32(indexBuff[_offset+2:], dataPtr)
 			_, err = m.dstWriter.Write(indexBuff)

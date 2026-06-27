@@ -161,29 +161,15 @@ func (s *Searcher) Search(ip any) (string, error) {
 	}
 
 	// binary search the segment index to get the region
-	var bytes, dBytes = len(ipBytes), len(ipBytes) << 1
-	var segIndexSize = uint32(s.version.SegmentIndexSize)
-	var dataLen, dataPtr = 0, uint32(0)
-	var buff = make([]byte, segIndexSize)
-	var l, h = 0, int((ePtr - sPtr) / segIndexSize)
-	for l <= h {
-		m := (l + h) >> 1
-		p := sPtr + uint32(m)*segIndexSize
-		err := s.read(int64(p), buff)
-		if err != nil {
-			return "", fmt.Errorf("read segment index at %d: %w", p, err)
-		}
-
-		// decode the data step by step to reduce the unnecessary operations
-		if s.version.IPCompare(ipBytes, buff[0:bytes]) < 0 {
-			h = m - 1
-		} else if s.version.IPCompare(ipBytes, buff[bytes:dBytes]) > 0 {
-			l = m + 1
-		} else {
-			dataLen = int(binary.LittleEndian.Uint16(buff[dBytes:]))
-			dataPtr = binary.LittleEndian.Uint32(buff[dBytes+2:])
-			break
-		}
+	var dataLen int
+	var dataPtr uint32
+	if s.version.NoEndIp {
+		dataLen, dataPtr, err = s.searchNoEndIp(ipBytes, sPtr, ePtr)
+	} else {
+		dataLen, dataPtr, err = s.searchWithEndIp(ipBytes, sPtr, ePtr)
+	}
+	if err != nil {
+		return "", err
 	}
 
 	// fmt.Printf("dataLen: %d, dataPtr: %d\n", dataLen, dataPtr)
@@ -199,6 +185,67 @@ func (s *Searcher) Search(ip any) (string, error) {
 	}
 
 	return string(regionBuff), nil
+}
+
+// searchWithEndIp is the classic structure 2.0/3.0 search algorithm.
+// Each segment index block stores both start_ip and end_ip.
+func (s *Searcher) searchWithEndIp(ipBytes []byte, sPtr, ePtr uint32) (int, uint32, error) {
+	var bytes, dBytes = len(ipBytes), len(ipBytes) << 1
+	var segIndexSize = uint32(s.version.SegmentIndexSize)
+	var dataLen, dataPtr = 0, uint32(0)
+	var buff = make([]byte, segIndexSize)
+	var l, h = 0, int((ePtr - sPtr) / segIndexSize)
+	for l <= h {
+		m := (l + h) >> 1
+		p := sPtr + uint32(m)*segIndexSize
+		err := s.read(int64(p), buff)
+		if err != nil {
+			return 0, 0, fmt.Errorf("read segment index at %d: %w", p, err)
+		}
+
+		if s.version.IPCompare(ipBytes, buff[0:bytes]) < 0 {
+			h = m - 1
+		} else if s.version.IPCompare(ipBytes, buff[bytes:dBytes]) > 0 {
+			l = m + 1
+		} else {
+			dataLen = int(binary.LittleEndian.Uint16(buff[dBytes:]))
+			dataPtr = binary.LittleEndian.Uint32(buff[dBytes+2:])
+			break
+		}
+	}
+
+	return dataLen, dataPtr, nil
+}
+
+// searchNoEndIp is the structure 4.0 search algorithm.
+// The segment index block only stores start_ip, so we locate the segment by
+// finding the greatest start_ip that is less than or equal to the query ip.
+// The maker guarantees the segments are globally ordered and continuous.
+func (s *Searcher) searchNoEndIp(ipBytes []byte, sPtr, ePtr uint32) (int, uint32, error) {
+	var bytes = len(ipBytes)
+	var segIndexSize = uint32(s.version.SegmentIndexSize)
+	var dataLen, dataPtr = 0, uint32(0)
+	var buff = make([]byte, segIndexSize)
+	var l, h = 0, int((ePtr-sPtr)/segIndexSize) - 1
+	for l <= h {
+		m := (l + h) >> 1
+		p := sPtr + uint32(m)*segIndexSize
+		err := s.read(int64(p), buff)
+		if err != nil {
+			return 0, 0, fmt.Errorf("read segment index at %d: %w", p, err)
+		}
+
+		if s.version.IPCompare(ipBytes, buff[0:bytes]) < 0 {
+			h = m - 1
+		} else {
+			// ip >= start_ip[m], record candidate and keep searching right
+			dataLen = int(binary.LittleEndian.Uint16(buff[bytes:]))
+			dataPtr = binary.LittleEndian.Uint32(buff[bytes+2:])
+			l = m + 1
+		}
+	}
+
+	return dataLen, dataPtr, nil
 }
 
 // do the data read operation based on the setting.

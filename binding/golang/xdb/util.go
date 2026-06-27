@@ -152,7 +152,7 @@ func Verify(handle *os.File) error {
 	switch header.Version {
 	case Structure20:
 		runtimePtrBytes = 4
-	case Structure30:
+	case Structure30, Structure40:
 		runtimePtrBytes = header.RuntimePtrBytes
 	default:
 		return fmt.Errorf("invalid version: %d", header.Version)

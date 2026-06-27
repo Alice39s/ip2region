@@ -211,3 +211,51 @@ func (s *Segment) String() string {
 func (s *Segment) Contains(ip []byte) bool {
 	return IPCompare(s.StartIP, ip) <= 0 && IPCompare(ip, s.EndIP) <= 0
 }
+
+// FillGaps fills the discontinuous segments with EmptyRegion to keep the entire
+// IP space continuous. This is required when the segment index block does not
+// store end_ip, because the searcher locates a segment only by its start_ip.
+func FillGaps(version *Version, segments []*Segment) ([]*Segment, error) {
+	if len(segments) < 1 {
+		return segments, nil
+	}
+
+	var last *Segment
+	var filled []*Segment
+	for _, seg := range segments {
+		if last == nil {
+			if IPCompare(seg.StartIP, version.Min) > 0 {
+				filled = append(filled, &Segment{
+					StartIP: version.Min,
+					EndIP:   IPSubOne(seg.StartIP),
+					Region:  EmptyRegion,
+				})
+			}
+		} else if err := seg.RightBehind(last); err == nil {
+			// continuous, do nothing
+		} else if err := seg.After(last); err != nil {
+			return nil, fmt.Errorf("overlap checking: %w", err)
+		} else {
+			filled = append(filled, &Segment{
+				StartIP: IPAddOne(last.EndIP),
+				EndIP:   IPSubOne(seg.StartIP),
+				Region:  EmptyRegion,
+			})
+		}
+
+		filled = append(filled, seg)
+		last = seg
+	}
+
+	if back := filled[len(filled)-1]; back != nil {
+		if IPCompare(version.Max, back.EndIP) > 0 {
+			filled = append(filled, &Segment{
+				StartIP: IPAddOne(back.EndIP),
+				EndIP:   version.Max,
+				Region:  EmptyRegion,
+			})
+		}
+	}
+
+	return filled, nil
+}

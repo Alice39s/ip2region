@@ -19,6 +19,7 @@ import (
 const (
 	Structure20      = 2
 	Structure30      = 3
+	Structure40      = 4 // end_ip removed from segment index block
 	HeaderInfoLength = 256
 	VectorIndexRows  = 256
 	VectorIndexCols  = 256

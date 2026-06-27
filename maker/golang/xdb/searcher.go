@@ -100,7 +100,7 @@ func (s *Searcher) Search(ip []byte) (string, int, error) {
 
 	// locate the segment index block based on the vector index
 	var ioCount = 0
-	var il0, il1, bytes, tBytes = int(ip[0]), int(ip[1]), len(ip), len(ip) << 1
+	var il0, il1, bytes = int(ip[0]), int(ip[1]), len(ip)
 	var idx = il0*VectorIndexCols*VectorIndexSize + il1*VectorIndexSize
 	var sPtr, ePtr = uint32(0), uint32(0)
 	if s.vectorIndex != nil {
@@ -133,10 +133,14 @@ func (s *Searcher) Search(ip []byte) (string, int, error) {
 	}
 
 	// binary search the segment index to get the region
+	// @Note: since structure 4.0 removed end_ip from the segment index block,
+	// we locate the segment by finding the greatest start_ip that is less than
+	// or equal to the query ip. The maker guarantees the segments are globally
+	// ordered and continuous.
 	var segIndexSize = uint32(s.version.SegmentIndexSize)
 	var dataLen, dataPtr = 0, uint32(0)
 	var buff = make([]byte, segIndexSize)
-	var l, h = 0, int((ePtr - sPtr) / segIndexSize)
+	var l, h = 0, int((ePtr-sPtr)/segIndexSize) - 1
 	for l <= h {
 		// log.Printf("l=%d, h=%d", l, h)
 		m := (l + h) >> 1
@@ -157,15 +161,13 @@ func (s *Searcher) Search(ip []byte) (string, int, error) {
 			return "", ioCount, fmt.Errorf("incomplete read: readed bytes should be %d", len(buff))
 		}
 
-		// decode the data step by step to reduce the unnecessary calculations
 		if s.version.IPCompare(ip, buff[0:bytes]) < 0 {
 			h = m - 1
-		} else if s.version.IPCompare(ip, buff[bytes:tBytes]) > 0 {
-			l = m + 1
 		} else {
-			dataLen = int(binary.LittleEndian.Uint16(buff[tBytes:]))
-			dataPtr = binary.LittleEndian.Uint32(buff[tBytes+2:])
-			break
+			// ip >= start_ip[m], record candidate and keep searching right
+			dataLen = int(binary.LittleEndian.Uint16(buff[bytes:]))
+			dataPtr = binary.LittleEndian.Uint32(buff[bytes+2:])
+			l = m + 1
 		}
 	}
 
