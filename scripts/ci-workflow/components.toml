@@ -146,8 +146,43 @@ path = "binding/lua"
 platforms = ["linux"]
 
 [[components.steps]]
-name = "Test Lua utilities"
-command = ["lua5.4", "util_test.lua"]
+name = "Test Lua version parsing"
+command = ["lua5.4", "util_test.lua", "test_version_parse"]
+timeout_seconds = 300
+
+[[components.steps]]
+name = "Test Lua IP parsing"
+command = ["lua5.4", "util_test.lua", "test_parse_ip"]
+timeout_seconds = 300
+
+[[components.steps]]
+name = "Test Lua IP comparison"
+command = ["lua5.4", "util_test.lua", "test_ip_compare"]
+timeout_seconds = 300
+
+[[components.steps]]
+name = "Test Lua header loading"
+command = ["lua5.4", "util_test.lua", "test_load_header"]
+timeout_seconds = 300
+
+[[components.steps]]
+name = "Test Lua vector index loading"
+command = ["lua5.4", "util_test.lua", "test_load_vector_index"]
+timeout_seconds = 300
+
+[[components.steps]]
+name = "Test Lua content loading"
+command = ["lua5.4", "util_test.lua", "test_load_content"]
+timeout_seconds = 300
+
+[[components.steps]]
+name = "Test Lua xdb verification"
+command = ["lua5.4", "util_test.lua", "test_verify"]
+timeout_seconds = 300
+
+[[components.steps]]
+name = "Test Lua search"
+command = ["lua5.4", "util_test.lua", "test_ip_search"]
 timeout_seconds = 300
 
 [[components]]
@@ -162,8 +197,38 @@ command = ["make", "LuaVersion=5.4"]
 timeout_seconds = 300
 
 [[components.steps]]
-name = "Test Lua C utilities"
-command = ["lua5.4", "util_test.lua"]
+name = "Test Lua C IP parsing"
+command = ["lua5.4", "util_test.lua", "test_parse_ip"]
+timeout_seconds = 300
+environment = { LUA_CPATH = "./?.so;;" }
+
+[[components.steps]]
+name = "Test Lua C constants"
+command = ["lua5.4", "util_test.lua", "test_print_const"]
+timeout_seconds = 300
+environment = { LUA_CPATH = "./?.so;;" }
+
+[[components.steps]]
+name = "Test Lua C header loading"
+command = ["lua5.4", "util_test.lua", "test_load_header"]
+timeout_seconds = 300
+environment = { LUA_CPATH = "./?.so;;" }
+
+[[components.steps]]
+name = "Test Lua C vector index loading"
+command = ["lua5.4", "util_test.lua", "test_load_vector_index"]
+timeout_seconds = 300
+environment = { LUA_CPATH = "./?.so;;" }
+
+[[components.steps]]
+name = "Test Lua C content loading"
+command = ["lua5.4", "util_test.lua", "test_load_content"]
+timeout_seconds = 300
+environment = { LUA_CPATH = "./?.so;;" }
+
+[[components.steps]]
+name = "Test Lua C search"
+command = ["lua5.4", "util_test.lua", "test_search"]
 timeout_seconds = 300
 environment = { LUA_CPATH = "./?.so;;" }
 
@@ -175,7 +240,7 @@ platforms = ["linux"]
 
 [[components.steps]]
 name = "Build Nginx module image"
-command = ["docker", "build", "--tag", "ip2region-nginx-ci", "."]
+command = ["docker", "build", "--file", "Dockerfile", "--tag", "ip2region-nginx-ci", "../.."]
 timeout_seconds = 1800
 
 [[components]]
@@ -191,8 +256,33 @@ path = "binding/php"
 platforms = ["linux"]
 
 [[components.steps]]
-name = "Test PHP utilities"
-command = ["php", "xdb/util_test.php"]
+name = "Test PHP header loading"
+command = ["php", "xdb/util_test.php", "testLoadHeader"]
+timeout_seconds = 300
+
+[[components.steps]]
+name = "Test PHP vector index loading"
+command = ["php", "xdb/util_test.php", "testLoadVectorIndex"]
+timeout_seconds = 300
+
+[[components.steps]]
+name = "Test PHP content loading"
+command = ["php", "xdb/util_test.php", "testLoadContent"]
+timeout_seconds = 300
+
+[[components.steps]]
+name = "Test PHP IP parsing"
+command = ["php", "xdb/util_test.php", "testParseIP"]
+timeout_seconds = 300
+
+[[components.steps]]
+name = "Test PHP IP comparison"
+command = ["php", "xdb/util_test.php", "testIPCompare"]
+timeout_seconds = 300
+
+[[components.steps]]
+name = "Test PHP constants"
+command = ["php", "xdb/util_test.php", "testAttributes"]
 timeout_seconds = 300
 
 [[components]]
@@ -202,8 +292,43 @@ path = "binding/python"
 platforms = ["linux"]
 
 [[components.steps]]
-name = "Test Python binding"
-command = ["uv", "run", "--no-project", "--python", "3.14", "python", "util_test.py"]
+name = "Test Python versions"
+command = ["uv", "run", "--no-project", "--python", "3.14", "python", "util_test.py", "test_version"]
+timeout_seconds = 600
+
+[[components.steps]]
+name = "Test Python xdb verification"
+command = ["uv", "run", "--no-project", "--python", "3.14", "python", "util_test.py", "test_verify"]
+timeout_seconds = 600
+
+[[components.steps]]
+name = "Test Python header loading"
+command = ["uv", "run", "--no-project", "--python", "3.14", "python", "util_test.py", "test_load_header"]
+timeout_seconds = 600
+
+[[components.steps]]
+name = "Test Python vector index loading"
+command = ["uv", "run", "--no-project", "--python", "3.14", "python", "util_test.py", "test_load_vector_index"]
+timeout_seconds = 600
+
+[[components.steps]]
+name = "Test Python content loading"
+command = ["uv", "run", "--no-project", "--python", "3.14", "python", "util_test.py", "test_load_content"]
+timeout_seconds = 600
+
+[[components.steps]]
+name = "Test Python IP parsing"
+command = ["uv", "run", "--no-project", "--python", "3.14", "python", "util_test.py", "test_parse_ip"]
+timeout_seconds = 600
+
+[[components.steps]]
+name = "Test Python IP comparison"
+command = ["uv", "run", "--no-project", "--python", "3.14", "python", "util_test.py", "test_ip_compare"]
+timeout_seconds = 600
+
+[[components.steps]]
+name = "Test Python search"
+command = ["uv", "run", "--no-project", "--python", "3.14", "python", "util_test.py", "test_ip_search"]
 timeout_seconds = 600
 
 [[components]]
