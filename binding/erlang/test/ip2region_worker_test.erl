@@ -4,7 +4,7 @@
 
 worker_search_v4_binary_test() ->
     ip2region_sup:create_table(),
-    {ok, Pid} = ip2region_worker:start_link([{xdb_file, "ip2region.xdb"}]),
+    {ok, Pid} = ip2region_worker:start_link([{xdb_file, ip2region_test_util:v4_xdb_path()}]),
     try
         Region = ip2region_worker:search(Pid, <<1,0,8,0>>),
         ?assert(is_list(Region))
