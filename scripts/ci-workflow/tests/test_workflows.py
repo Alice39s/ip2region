@@ -46,3 +46,10 @@ def test_cpp_workflow_uses_manifest_adapter() -> None:
 
     assert "ip2region-ci architecture" in workflow_text
     assert "ip2region-ci run binding-cpp" in workflow_text
+
+
+@pytest.mark.parametrize("workflow_path", sorted(WORKFLOW_DIRECTORY.glob("*.yml")))
+def test_setup_uv_uses_resolvable_release_tag(workflow_path: Path) -> None:
+    workflow_text = workflow_path.read_text()
+
+    assert "astral-sh/setup-uv@v10.0.1" in workflow_text
