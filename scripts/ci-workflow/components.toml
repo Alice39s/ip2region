@@ -1,0 +1,301 @@
+version = 1
+component_roots = ["binding", "maker"]
+
+[[components]]
+id = "binding-c"
+kind = "binding"
+path = "binding/c"
+platforms = ["linux", "macos"]
+
+[[components.steps]]
+name = "Build C binding"
+command = ["make"]
+timeout_seconds = 300
+
+[[components.steps]]
+name = "Test C header loading"
+command = ["./test_util", "test_load_header"]
+timeout_seconds = 120
+
+[[components.steps]]
+name = "Test C vector index loading"
+command = ["./test_util", "test_load_vector_index"]
+timeout_seconds = 120
+
+[[components.steps]]
+name = "Test C content loading"
+command = ["./test_util", "test_load_content"]
+timeout_seconds = 120
+
+[[components.steps]]
+name = "Test C IP parsing"
+command = ["./test_util", "test_parse_ip"]
+timeout_seconds = 120
+
+[[components.steps]]
+name = "Test C IP comparison"
+command = ["./test_util", "test_ip_compare"]
+timeout_seconds = 120
+
+[[components]]
+id = "binding-cangjie"
+kind = "binding"
+path = "binding/cangjie"
+platforms = ["linux"]
+
+[[components.steps]]
+name = "Build Cangjie binding"
+command = ["cjpm", "build"]
+timeout_seconds = 900
+
+[[components.steps]]
+name = "Test Cangjie binding"
+command = ["cjpm", "test"]
+timeout_seconds = 900
+
+[[components]]
+id = "binding-cpp"
+kind = "binding"
+path = "binding/cpp"
+platforms = ["linux", "macos", "windows"]
+
+[[components.steps]]
+name = "Configure C++ binding"
+command = ["cmake", "-S", ".", "-B", "build", "-DCMAKE_BUILD_TYPE=Release"]
+timeout_seconds = 300
+
+[[components.steps]]
+name = "Build C++ binding"
+command = ["cmake", "--build", "build", "--config", "Release", "--parallel"]
+timeout_seconds = 900
+
+[[components.steps]]
+name = "Test C++ binding"
+command = ["ctest", "--test-dir", "build", "-C", "Release", "--output-on-failure"]
+timeout_seconds = 900
+
+[[components]]
+id = "binding-csharp"
+kind = "binding"
+path = "binding/csharp"
+platforms = ["linux"]
+
+[[components.steps]]
+name = "Build and test C# binding"
+command = ["dotnet", "test", "IP2Region.Net.slnx", "--configuration", "Release"]
+timeout_seconds = 1200
+
+[[components]]
+id = "binding-erlang"
+kind = "binding"
+path = "binding/erlang"
+platforms = ["linux"]
+
+[[components.steps]]
+name = "Build and test Erlang binding"
+command = ["rebar3", "eunit"]
+timeout_seconds = 1200
+
+[[components]]
+id = "binding-golang"
+kind = "binding"
+path = "binding/golang"
+platforms = ["linux"]
+
+[[components.steps]]
+name = "Test Go binding"
+command = ["go", "test", "./..."]
+timeout_seconds = 900
+
+[[components.steps]]
+name = "Build Go binding"
+command = ["go", "build", "./..."]
+timeout_seconds = 600
+
+[[components]]
+id = "binding-java"
+kind = "binding"
+path = "binding/java"
+platforms = ["linux"]
+
+[[components.steps]]
+name = "Build and test Java binding"
+command = ["mvn", "--batch-mode", "--no-transfer-progress", "verify"]
+timeout_seconds = 1200
+
+[[components]]
+id = "binding-javascript"
+kind = "binding"
+path = "binding/javascript"
+platforms = ["linux"]
+
+[[components.steps]]
+name = "Install JavaScript dependencies"
+command = ["npm", "install", "--ignore-scripts"]
+timeout_seconds = 900
+
+[[components.steps]]
+name = "Test JavaScript binding"
+command = ["npm", "test", "--", "--runInBand"]
+timeout_seconds = 900
+
+[[components]]
+id = "binding-lua"
+kind = "binding"
+path = "binding/lua"
+platforms = ["linux"]
+
+[[components.steps]]
+name = "Test Lua utilities"
+command = ["lua5.4", "util_test.lua"]
+timeout_seconds = 300
+
+[[components]]
+id = "binding-lua-c"
+kind = "binding"
+path = "binding/lua_c"
+platforms = ["linux"]
+
+[[components.steps]]
+name = "Build Lua C binding"
+command = ["make", "LuaVersion=5.4"]
+timeout_seconds = 300
+
+[[components.steps]]
+name = "Test Lua C utilities"
+command = ["lua5.4", "util_test.lua"]
+timeout_seconds = 300
+environment = { LUA_CPATH = "./?.so;;" }
+
+[[components]]
+id = "binding-nginx"
+kind = "binding"
+path = "binding/nginx"
+platforms = ["linux"]
+
+[[components.steps]]
+name = "Build Nginx module image"
+command = ["docker", "build", "--tag", "ip2region-nginx-ci", "."]
+timeout_seconds = 1800
+
+[[components]]
+id = "binding-nodejs"
+kind = "alias"
+path = "binding/nodejs"
+alias_of = "binding-javascript"
+
+[[components]]
+id = "binding-php"
+kind = "binding"
+path = "binding/php"
+platforms = ["linux"]
+
+[[components.steps]]
+name = "Test PHP utilities"
+command = ["php", "xdb/util_test.php"]
+timeout_seconds = 300
+
+[[components]]
+id = "binding-python"
+kind = "binding"
+path = "binding/python"
+platforms = ["linux"]
+
+[[components.steps]]
+name = "Test Python binding"
+command = ["uv", "run", "--no-project", "--python", "3.14", "python", "util_test.py"]
+timeout_seconds = 600
+
+[[components]]
+id = "binding-rust"
+kind = "binding"
+path = "binding/rust"
+platforms = ["linux"]
+
+[[components.steps]]
+name = "Build and test Rust binding"
+command = ["cargo", "test", "--workspace"]
+timeout_seconds = 1200
+
+[[components]]
+id = "binding-typescript"
+kind = "alias"
+path = "binding/typescript"
+alias_of = "binding-javascript"
+
+[[components]]
+id = "maker-c"
+kind = "unsupported"
+path = "maker/c"
+reason = "The repository contains documentation placeholders but no C maker implementation."
+
+[[components]]
+id = "maker-cpp"
+kind = "alias"
+path = "maker/cpp"
+alias_of = "binding-cpp"
+
+[[components]]
+id = "maker-csharp"
+kind = "maker"
+path = "maker/csharp"
+platforms = ["linux"]
+
+[[components.steps]]
+name = "Build and test C# maker"
+command = ["dotnet", "test", "IP2RegionMaker.Test/IP2RegionMaker.Test.csproj", "--configuration", "Release"]
+timeout_seconds = 1200
+
+[[components]]
+id = "maker-golang"
+kind = "maker"
+path = "maker/golang"
+platforms = ["linux"]
+
+[[components.steps]]
+name = "Test Go maker"
+command = ["go", "test", "./..."]
+timeout_seconds = 900
+
+[[components.steps]]
+name = "Build Go maker"
+command = ["go", "build", "./..."]
+timeout_seconds = 600
+
+[[components]]
+id = "maker-java"
+kind = "maker"
+path = "maker/java"
+platforms = ["linux"]
+
+[[components.steps]]
+name = "Build and test Java maker"
+command = ["mvn", "--batch-mode", "--no-transfer-progress", "verify"]
+timeout_seconds = 1200
+
+[[components]]
+id = "maker-python"
+kind = "maker"
+path = "maker/python"
+platforms = ["linux"]
+
+[[components.steps]]
+name = "Generate IPv4 xdb with Python maker"
+command = ["uv", "run", "--no-project", "--python", "3.14", "python", "main.py", "gen", "--src=../../data/ipv4_source.txt", "--dst=./ci-ipv4.xdb"]
+timeout_seconds = 1200
+
+[[components.steps]]
+name = "Query Python-generated xdb"
+command = ["uv", "run", "--no-project", "--python", "3.14", "python", "-c", "import sys; sys.path.insert(0, '../../binding/python'); import ip2region.searcher as searcher; import ip2region.util as util; xdb = searcher.new_with_file_only(util.IPv4, 'ci-ipv4.xdb'); actual = xdb.search('1.2.3.4'); xdb.close(); assert actual == 'Australia|Queensland|Brisbane|0|AU', actual"]
+timeout_seconds = 300
+
+[[components]]
+id = "maker-rust"
+kind = "maker"
+path = "maker/rust"
+platforms = ["linux"]
+
+[[components.steps]]
+name = "Build and test Rust maker"
+command = ["cargo", "test", "--manifest-path", "maker/Cargo.toml"]
+timeout_seconds = 1200
