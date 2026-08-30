@@ -5,6 +5,7 @@ from typing import Annotated
 
 import typer
 
+from ip2region_ci.cangjie import CangjieInstallError, install_cangjie
 from ip2region_ci.manifest import (
     ManifestError,
     component_by_id,
@@ -73,6 +74,18 @@ def architecture_command(
     if actual != expected:
         fail(f"runner architecture mismatch: expected {expected}, got {actual}")
     typer.echo(f"verified native {actual} runner")
+
+
+@app.command("install-cangjie")
+def install_cangjie_command(
+    destination: Annotated[Path, typer.Argument(file_okay=False, resolve_path=True)],
+) -> None:
+    """Install the pinned Linux x64 Cangjie SDK and print its envsetup path."""
+    try:
+        envsetup = install_cangjie(destination)
+    except CangjieInstallError as error:
+        fail(str(error))
+    typer.echo(envsetup)
 
 
 @app.command("run")

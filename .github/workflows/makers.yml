@@ -1,0 +1,93 @@
+name: XDB Makers
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/makers.yml"
+      - "maker/**"
+      - "binding/python/**"
+      - "data/**"
+      - "scripts/ci-workflow/**"
+  push:
+    paths:
+      - ".github/workflows/makers.yml"
+      - "maker/**"
+      - "binding/python/**"
+      - "data/**"
+      - "scripts/ci-workflow/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: makers-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: C# maker
+            component: maker-csharp
+            runtime: dotnet
+          - name: Go maker
+            component: maker-golang
+            runtime: go
+          - name: Java maker
+            component: maker-java
+            runtime: java
+          - name: Python maker
+            component: maker-python
+            runtime: python
+          - name: Rust maker
+            component: maker-rust
+            runtime: rust
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.0.1
+        with:
+          version: "0.11.26"
+          enable-cache: true
+          cache-dependency-glob: scripts/ci-workflow/uv.lock
+
+      - name: Sync control-plane environment
+        run: uv sync --project scripts/ci-workflow --all-groups --locked
+
+      - name: Install Go
+        if: matrix.runtime == 'go'
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: maker/golang/go.mod
+          cache-dependency-path: maker/golang/go.sum
+
+      - name: Install Java
+        if: matrix.runtime == 'java'
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "8"
+          cache: maven
+
+      - name: Install .NET
+        if: matrix.runtime == 'dotnet'
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Update Rust
+        if: matrix.runtime == 'rust'
+        run: rustup update stable --no-self-update
+
+      - name: Build and test maker
+        run: >-
+          uv run --project scripts/ci-workflow ip2region-ci run
+          ${{ matrix.component }}

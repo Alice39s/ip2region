@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from ruamel.yaml import YAML
 
-from ip2region_ci.manifest import repository_root
+from ip2region_ci.manifest import load_manifest, repository_root
 
 WORKFLOW_DIRECTORY = repository_root() / ".github" / "workflows"
 
@@ -46,6 +46,37 @@ def test_cpp_workflow_uses_manifest_adapter() -> None:
 
     assert "ip2region-ci architecture" in workflow_text
     assert "ip2region-ci run binding-cpp" in workflow_text
+
+
+def test_bindings_workflow_covers_every_non_cpp_binding() -> None:
+    workflow = load_workflow("bindings.yml")
+    matrix = workflow["jobs"]["build-and-test"]["strategy"]["matrix"]["include"]
+    actual = {item["component"] for item in matrix}
+    expected = {
+        component.id
+        for component in load_manifest().components
+        if component.kind == "binding" and component.id != "binding-cpp"
+    }
+
+    assert actual == expected
+
+
+def test_makers_workflow_covers_every_runnable_maker() -> None:
+    workflow = load_workflow("makers.yml")
+    matrix = workflow["jobs"]["build-and-test"]["strategy"]["matrix"]["include"]
+    actual = {item["component"] for item in matrix}
+    expected = {
+        component.id for component in load_manifest().components if component.kind == "maker"
+    }
+
+    assert actual == expected
+
+
+@pytest.mark.parametrize("workflow_name", ["bindings.yml", "makers.yml"])
+def test_language_workflows_use_manifest_adapters(workflow_name: str) -> None:
+    workflow_text = (WORKFLOW_DIRECTORY / workflow_name).read_text()
+
+    assert "ip2region-ci run" in workflow_text
 
 
 @pytest.mark.parametrize("workflow_path", sorted(WORKFLOW_DIRECTORY.glob("*.yml")))
