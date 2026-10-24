@@ -33,12 +33,25 @@ runs:
         SDK: ${{ runner.temp }}/cangjie-sdk
       run: | # zizmor: ignore[github-env] the paths come from the pinned SDK
         envsetup="$(uv run ip2region-ci install-cangjie "$SDK")"
+        native=(echo)
+        if [[ "$RUNNER_OS" == Windows ]]; then
+          envsetup="$(cygpath -u "$envsetup")"
+          native=(cygpath -w)
+        fi
         # shellcheck disable=SC1090
         source "$envsetup"
-        echo "$CANGJIE_HOME/bin" >> "$GITHUB_PATH"
-        echo "$CANGJIE_HOME/tools/bin" >> "$GITHUB_PATH"
-        echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> "$GITHUB_ENV"
-        echo "CANGJIE_HOME=$CANGJIE_HOME" >> "$GITHUB_ENV"
+        IFS=: read -ra entries <<< "$PATH"
+        for entry in "${entries[@]}"; do
+          if [[ "$entry" == "$CANGJIE_HOME"/* ]]; then
+            "${native[@]}" "$entry" >> "$GITHUB_PATH"
+          fi
+        done
+        echo "CANGJIE_HOME=$("${native[@]}" "$CANGJIE_HOME")" >> "$GITHUB_ENV"
+        for name in LD_LIBRARY_PATH SDKROOT; do
+          if [[ -n "${!name:-}" ]]; then
+            echo "$name=${!name}" >> "$GITHUB_ENV"
+          fi
+        done
 
     - if: inputs.toolchain == 'go'
       uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
