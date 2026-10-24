@@ -1,0 +1,7 @@
+toolchain = { name = "rust", version = "stable" }
+platforms = ["linux"]
+
+[[test]]
+name = "Unit tests"
+run = ["cargo", "test", "--workspace"]
+timeout = 1200

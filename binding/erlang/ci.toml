@@ -1,0 +1,7 @@
+toolchain = { name = "erlang" }
+platforms = ["linux"]
+
+[[test]]
+name = "Unit tests"
+run = ["rebar3", "eunit"]
+timeout = 1200

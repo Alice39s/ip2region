@@ -1,0 +1,130 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      components:
+        description: Space-separated component paths, such as binding/c. Empty runs all.
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  UV_PROJECT: scripts/ci
+
+jobs:
+  control:
+    name: Control plane
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: scripts/ci
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          enable-cache: true
+          cache-dependency-glob: scripts/ci/uv.lock
+      - run: uv sync --locked
+      - run: uv run ruff format --check
+      - run: uv run ruff check
+      - run: uv run pytest
+      - run: uv run ip2region-ci validate
+      - run: uv run zizmor --pedantic ../../.github
+      - name: Run actionlint
+        env:
+          ACTIONLINT_VERSION: v1.7.12
+        run: go run "github.com/rhysd/actionlint/cmd/actionlint@${ACTIONLINT_VERSION}"
+        working-directory: .
+
+  plan:
+    name: Plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      lint: ${{ steps.plan.outputs.lint }}
+      test: ${{ steps.plan.outputs.test }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          enable-cache: true
+          cache-dependency-glob: scripts/ci/uv.lock
+      - id: plan
+        env:
+          SINCE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          ONLY: ${{ inputs.components }}
+        run: |
+          args=(--since "$SINCE")
+          for component in $ONLY; do
+            args+=(--only "$component")
+          done
+          uv run ip2region-ci plan "${args[@]}" | tee -a "$GITHUB_OUTPUT"
+
+  lint:
+    name: Lint ${{ matrix.component }}
+    needs: plan
+    if: needs.plan.outputs.lint != '[]'
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.lint) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          component: ${{ matrix.component }}
+          toolchain: ${{ matrix.toolchain }}
+          version: ${{ matrix.toolchain-version }}
+      - env:
+          COMPONENT: ${{ matrix.component }}
+        run: uv run ip2region-ci run "$COMPONENT" lint
+
+  test:
+    name: Test ${{ matrix.component }} on ${{ matrix.target }}
+    needs: plan
+    if: needs.plan.outputs.test != '[]'
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.test) }}
+    env:
+      COMPONENT: ${{ matrix.component }}
+      TARGET: ${{ matrix.target }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          component: ${{ matrix.component }}
+          toolchain: ${{ matrix.toolchain }}
+          version: ${{ matrix.toolchain-version }}
+      - run: uv run ip2region-ci check-architecture "${TARGET#*-}"
+      - run: uv run ip2region-ci run "$COMPONENT" test
+      - run: uv run ip2region-ci run "$COMPONENT" accept

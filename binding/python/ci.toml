@@ -1,0 +1,34 @@
+toolchain = { name = "python" }
+platforms = ["linux"]
+
+[[test]]
+name = "Run test_version"
+run = ["uv", "run", "--no-project", "--python", "3.14", "python", "util_test.py", "test_version"]
+
+[[test]]
+name = "Run test_verify"
+run = ["uv", "run", "--no-project", "--python", "3.14", "python", "util_test.py", "test_verify"]
+
+[[test]]
+name = "Run test_load_header"
+run = ["uv", "run", "--no-project", "--python", "3.14", "python", "util_test.py", "test_load_header"]
+
+[[test]]
+name = "Run test_load_vector_index"
+run = ["uv", "run", "--no-project", "--python", "3.14", "python", "util_test.py", "test_load_vector_index"]
+
+[[test]]
+name = "Run test_load_content"
+run = ["uv", "run", "--no-project", "--python", "3.14", "python", "util_test.py", "test_load_content"]
+
+[[test]]
+name = "Run test_parse_ip"
+run = ["uv", "run", "--no-project", "--python", "3.14", "python", "util_test.py", "test_parse_ip"]
+
+[[test]]
+name = "Run test_ip_compare"
+run = ["uv", "run", "--no-project", "--python", "3.14", "python", "util_test.py", "test_ip_compare"]
+
+[[test]]
+name = "Run test_ip_search"
+run = ["uv", "run", "--no-project", "--python", "3.14", "python", "util_test.py", "test_ip_search"]

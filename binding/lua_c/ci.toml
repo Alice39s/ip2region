@@ -1,0 +1,36 @@
+toolchain = { name = "lua", version = "5.4" }
+platforms = ["linux"]
+
+[[test]]
+name = "Build"
+run = ["make", "LuaVersion=5.4"]
+
+[[test]]
+name = "Run test_parse_ip"
+run = ["lua", "util_test.lua", "test_parse_ip"]
+env = { LUA_CPATH = "./?.so;;" }
+
+[[test]]
+name = "Run test_print_const"
+run = ["lua", "util_test.lua", "test_print_const"]
+env = { LUA_CPATH = "./?.so;;" }
+
+[[test]]
+name = "Run test_load_header"
+run = ["lua", "util_test.lua", "test_load_header"]
+env = { LUA_CPATH = "./?.so;;" }
+
+[[test]]
+name = "Run test_load_vector_index"
+run = ["lua", "util_test.lua", "test_load_vector_index"]
+env = { LUA_CPATH = "./?.so;;" }
+
+[[test]]
+name = "Run test_load_content"
+run = ["lua", "util_test.lua", "test_load_content"]
+env = { LUA_CPATH = "./?.so;;" }
+
+[[test]]
+name = "Run test_search"
+run = ["lua", "util_test.lua", "test_search"]
+env = { LUA_CPATH = "./?.so;;" }

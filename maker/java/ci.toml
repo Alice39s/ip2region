@@ -1,0 +1,7 @@
+toolchain = { name = "java", version = "8" }
+platforms = ["linux"]
+
+[[test]]
+name = "Unit tests"
+run = ["mvn", "--batch-mode", "--no-transfer-progress", "verify"]
+timeout = 1200

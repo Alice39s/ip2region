@@ -1,0 +1,12 @@
+toolchain = { name = "node", version = "24" }
+platforms = ["linux"]
+
+[[test]]
+name = "Install dependencies"
+run = ["npm", "install", "--ignore-scripts"]
+timeout = 900
+
+[[test]]
+name = "Unit tests"
+run = ["npm", "test", "--", "--runInBand"]
+timeout = 900

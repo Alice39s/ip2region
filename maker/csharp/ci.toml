@@ -1,0 +1,7 @@
+toolchain = { name = "dotnet", version = "6.0.x" }
+platforms = ["linux"]
+
+[[test]]
+name = "Unit tests"
+run = ["dotnet", "test", "IP2RegionMaker.Test/IP2RegionMaker.Test.csproj", "--configuration", "Release"]
+timeout = 1200

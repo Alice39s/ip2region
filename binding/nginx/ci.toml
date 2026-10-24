@@ -1,0 +1,10 @@
+toolchain = { name = "docker" }
+platforms = ["linux"]
+
+architectures = ["x64"]
+depends_on = ["binding/c"]
+
+[[test]]
+name = "Build the module image"
+run = ["docker", "build", "--file", "Dockerfile", "--tag", "ip2region-nginx-ci", "../.."]
+timeout = 1800

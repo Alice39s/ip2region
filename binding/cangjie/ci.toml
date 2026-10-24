@@ -1,0 +1,14 @@
+toolchain = { name = "cangjie" }
+platforms = ["linux"]
+
+architectures = ["x64"]
+
+[[test]]
+name = "Build"
+run = ["cjpm", "build"]
+timeout = 900
+
+[[test]]
+name = "Unit tests"
+run = ["cjpm", "test"]
+timeout = 900

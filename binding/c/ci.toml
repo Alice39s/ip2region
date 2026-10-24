@@ -1,0 +1,26 @@
+toolchain = { name = "native" }
+platforms = ["linux", "macos"]
+
+[[test]]
+name = "Build"
+run = ["make"]
+
+[[test]]
+name = "Run test_load_header"
+run = ["./test_util", "test_load_header"]
+
+[[test]]
+name = "Run test_load_vector_index"
+run = ["./test_util", "test_load_vector_index"]
+
+[[test]]
+name = "Run test_load_content"
+run = ["./test_util", "test_load_content"]
+
+[[test]]
+name = "Run test_parse_ip"
+run = ["./test_util", "test_parse_ip"]
+
+[[test]]
+name = "Run test_ip_compare"
+run = ["./test_util", "test_ip_compare"]

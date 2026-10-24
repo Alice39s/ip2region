@@ -1,0 +1,25 @@
+toolchain = { name = "go" }
+platforms = ["linux", "macos", "windows"]
+
+[[lint]]
+name = "Check formatting"
+run = ["gofmt", "-l", "."]
+fail_on_output = true
+
+[[lint]]
+name = "Vet"
+run = ["go", "vet", "./..."]
+
+[[test]]
+name = "Unit tests"
+run = ["go", "test", "./..."]
+
+[[accept]]
+name = "Bench the IPv4 xdb against its source"
+run = ["go", "run", ".", "bench", "--db=../../data/ip2region_v4.xdb", "--src=../../data/ipv4_source.txt"]
+timeout = 1200
+
+[[accept]]
+name = "Bench the IPv6 xdb against its source"
+run = ["go", "run", ".", "bench", "--db=../../data/ip2region_v6.xdb", "--src=../../data/ipv6_source.txt"]
+timeout = 1200

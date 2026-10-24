@@ -1,0 +1,7 @@
+toolchain = { name = "python" }
+platforms = ["linux"]
+
+[[test]]
+name = "Build the IPv4 xdb"
+run = ["uv", "run", "--no-project", "--python", "3.14", "python", "main.py", "gen", "--src=../../data/ipv4_source.txt", "--dst=./ci-ipv4.xdb"]
+timeout = 1200

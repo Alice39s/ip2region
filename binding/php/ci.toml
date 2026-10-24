@@ -1,0 +1,26 @@
+toolchain = { name = "php", version = "8.4" }
+platforms = ["linux"]
+
+[[test]]
+name = "Run testLoadHeader"
+run = ["php", "xdb/util_test.php", "testLoadHeader"]
+
+[[test]]
+name = "Run testLoadVectorIndex"
+run = ["php", "xdb/util_test.php", "testLoadVectorIndex"]
+
+[[test]]
+name = "Run testLoadContent"
+run = ["php", "xdb/util_test.php", "testLoadContent"]
+
+[[test]]
+name = "Run testParseIP"
+run = ["php", "xdb/util_test.php", "testParseIP"]
+
+[[test]]
+name = "Run testIPCompare"
+run = ["php", "xdb/util_test.php", "testIPCompare"]
+
+[[test]]
+name = "Run testAttributes"
+run = ["php", "xdb/util_test.php", "testAttributes"]

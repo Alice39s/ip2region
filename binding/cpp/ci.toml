@@ -1,0 +1,16 @@
+toolchain = { name = "native" }
+platforms = ["linux", "macos", "windows"]
+
+[[test]]
+name = "Configure"
+run = ["cmake", "-S", ".", "-B", "build", "-DCMAKE_BUILD_TYPE=Release"]
+
+[[test]]
+name = "Build"
+run = ["cmake", "--build", "build", "--config", "Release", "--parallel"]
+timeout = 900
+
+[[test]]
+name = "Unit tests"
+run = ["ctest", "--test-dir", "build", "-C", "Release", "--output-on-failure"]
+timeout = 900

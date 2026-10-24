@@ -1,0 +1,7 @@
+toolchain = { name = "rust", version = "stable" }
+platforms = ["linux"]
+
+[[test]]
+name = "Unit tests"
+run = ["cargo", "test", "--manifest-path", "maker/Cargo.toml"]
+timeout = 1200
