@@ -20,6 +20,7 @@ Every directory under `binding/` and `maker/` is a component and has a
 toolchain = { name = "go" }            # set up by .github/actions/setup
 platforms = ["linux", "macos", "windows"]
 architectures = ["x64", "arm64"]       # optional, both by default
+exclude = ["windows-arm64"]            # optional, targets to leave out
 depends_on = ["binding/c"]             # optional, other paths that trigger it
 
 [[lint]]
@@ -33,6 +34,7 @@ run = ["go", "test", "./..."]
 timeout = 900                          # optional, seconds, 600 by default
 env = { GOFLAGS = "-count=1" }         # optional
 platforms = ["linux"]                  # optional, a subset of the component's
+working_directory = "example"          # optional, inside the component
 ```
 
 Steps run in the component directory without a shell, in this order:
