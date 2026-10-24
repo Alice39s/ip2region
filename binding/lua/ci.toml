@@ -1,5 +1,9 @@
 toolchain = { name = "lua", version = "5.4" }
-platforms = ["linux"]
+platforms = ["linux", "macos", "windows"]
+
+[[lint]]
+name = "Luacheck"
+run = ["luacheck", "."]
 
 [[test]]
 name = "Run test_version_parse"
@@ -32,3 +36,13 @@ run = ["lua", "util_test.lua", "test_verify"]
 [[test]]
 name = "Run test_ip_search"
 run = ["lua", "util_test.lua", "test_ip_search"]
+
+[[accept]]
+name = "Bench the IPv4 xdb against its source"
+run = ["lua", "bench_test.lua", "--db=../../data/ip2region_v4.xdb", "--src=../../data/ipv4_source.txt"]
+timeout = 1800
+
+[[accept]]
+name = "Bench the IPv6 xdb against its source"
+run = ["lua", "bench_test.lua", "--db=../../data/ip2region_v6.xdb", "--src=../../data/ipv6_source.txt"]
+timeout = 1800
