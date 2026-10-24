@@ -95,7 +95,7 @@ const main = async () => {
     let totalMicroSecs = 0, count = 0, line = null;
     const rl = new LineByLine(srcPath);
     while ((line = rl.next())) {
-        const ps  = _split(line.toString('utf-8').trim());
+        const ps  = _split(line.toString('utf-8'));
         const sTime  = process.hrtime();
         const sip = xdb.parseIP(ps[0]);
         const eip = xdb.parseIP(ps[1]);
