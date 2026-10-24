@@ -2,8 +2,8 @@
 %% Copyright 2022 The Ip2Region Authors. All rights reserved.
 %% Use of this source code is governed by a Apache2.0-style
 %% license that can be found in the LICENSE file.
-%% 
-%% @doc 
+%%
+%% @doc
 %% ip2region xdb client benchmark test, which fails on any region that
 %% differs from the source file:
 %% erl -noshell -pa ... -run xdb_benchmark main ipv4 DbFile DataFile -s init stop
@@ -128,10 +128,13 @@ run_test(Label, Segments) ->
     Qps = Count / Sec,
     MsOp = Sec * 1000 / Count,
     UsOp = Sec * 1000000 / Count,
-    io:format("  ~-8s  total=~7.3fs  count=~7w  qps=~12.2f  avg=~9.6f ms/op (~6.3f us/op)~n",
-              [Label, Sec, Count, Qps, MsOp, UsOp]).
+    io:format(
+        "  ~-8s  total=~7.3fs  count=~7w  qps=~12.2f  avg=~9.6f ms/op (~6.3f us/op)~n",
+        [Label, Sec, Count, Qps, MsOp, UsOp]
+    ).
 
-run_test_aux([]) -> ok;
+run_test_aux([]) ->
+    ok;
 run_test_aux([{SIp, EIp, Region} | Tail]) ->
     check_search(SIp, Region),
     check_search(EIp, Region),
