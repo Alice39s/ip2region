@@ -29,20 +29,32 @@ def test_runs_steps_of_requested_phases_in_order(tmp_path: Path) -> None:
         accept=(python(append("accept")),),
     )
 
-    run_component(component, tmp_path, (Phase.TEST, Phase.ACCEPT), "windows")
+    phases = (Phase.TEST, Phase.ACCEPT)
+    run_component(component, tmp_path, phases, "windows-arm64")
 
     assert (tmp_path / "log").read_text() == "testaccept"
 
 
-def test_rejects_unsupported_platform(tmp_path: Path) -> None:
+@pytest.mark.parametrize("target", ["macos-arm64", "linux-arm64"])
+def test_rejects_unsupported_target(tmp_path: Path, target: str) -> None:
     component = Component(
         toolchain={"name": "python"},
         platforms=frozenset({"linux"}),
+        exclude=frozenset({"linux-arm64"}),
         test=(python("pass"),),
     )
 
-    with pytest.raises(CiError, match="not supported on macos"):
-        run_component(component, tmp_path, (Phase.TEST,), "macos")
+    with pytest.raises(CiError, match=f"not supported on {target}"):
+        run_component(component, tmp_path, (Phase.TEST,), target)
+
+
+def test_working_directory(tmp_path: Path) -> None:
+    (tmp_path / "example").mkdir()
+    step = python("open('out', 'w').write('ok')", working_directory="example")
+
+    run_step(step, tmp_path)
+
+    assert (tmp_path / "example" / "out").read_text() == "ok"
 
 
 def test_step_environment(tmp_path: Path) -> None:

@@ -75,6 +75,54 @@ def test_rejects_step_platform_outside_component(
         load_catalog(repo)
 
 
+@pytest.mark.parametrize(
+    ("setting", "message"),
+    [
+        ('exclude = ["linux-x64", "linux-arm64"]', "some, not all"),
+        ('exclude = ["macos-x64"]', "some, not all"),
+    ],
+)
+def test_rejects_bad_exclude(
+    repo: Path, write: Writer, setting: str, message: str
+) -> None:
+    write(
+        "binding/golang/ci.toml",
+        f"""
+        toolchain = {{ name = "go" }}
+        platforms = ["linux"]
+        {setting}
+
+        [[test]]
+        name = "Unit tests"
+        run = ["go", "test"]
+        """,
+    )
+
+    with pytest.raises(CiError, match=message):
+        load_catalog(repo)
+
+
+@pytest.mark.parametrize("directory", ["../c", "/opt/sdk", "a/../.."])
+def test_rejects_working_directory_outside_component(
+    repo: Path, write: Writer, directory: str
+) -> None:
+    write(
+        "binding/golang/ci.toml",
+        f"""
+        toolchain = {{ name = "go" }}
+        platforms = ["linux"]
+
+        [[test]]
+        name = "Unit tests"
+        run = ["go", "test"]
+        working_directory = "{directory}"
+        """,
+    )
+
+    with pytest.raises(CiError, match="leaves the component directory"):
+        load_catalog(repo)
+
+
 def test_rejects_missing_dependency(repo: Path, write: Writer) -> None:
     config = repo / "binding/golang/ci.toml"
     write(
