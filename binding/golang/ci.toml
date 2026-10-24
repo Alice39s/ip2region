@@ -1,4 +1,4 @@
-toolchain = { name = "go" }
+toolchain = { name = "go", version = "stable" }
 platforms = ["linux", "macos", "windows"]
 
 [[lint]]

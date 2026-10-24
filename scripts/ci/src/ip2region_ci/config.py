@@ -2,7 +2,7 @@ import tomllib
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
 from enum import StrEnum
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Literal, Self, get_args
 
 from pydantic import (
@@ -17,6 +17,14 @@ from ip2region_ci.errors import CiError
 
 Platform = Literal["linux", "macos", "windows"]
 Architecture = Literal["x64", "arm64"]
+Target = Literal[
+    "linux-x64",
+    "linux-arm64",
+    "macos-x64",
+    "macos-arm64",
+    "windows-x64",
+    "windows-arm64",
+]
 ToolchainName = Literal[
     "cangjie",
     "docker",
@@ -33,11 +41,7 @@ ToolchainName = Literal[
 ]
 
 CONFIG_NAME = "ci.toml"
-TARGETS = frozenset(
-    f"{platform}-{architecture}"
-    for platform in get_args(Platform)
-    for architecture in get_args(Architecture)
-)
+TARGETS: frozenset[str] = frozenset(get_args(Target))
 
 
 class Phase(StrEnum):
@@ -56,7 +60,17 @@ class Step(_Model):
     timeout: int = Field(default=600, ge=1, le=7200)
     env: Mapping[str, str] = Field(default_factory=dict)
     platforms: frozenset[Platform] | None = None
+    working_directory: str | None = None
     fail_on_output: bool = False
+
+    @model_validator(mode="after")
+    def _working_directory_inside_component(self) -> Self:
+        if self.working_directory is not None:
+            path = PurePosixPath(self.working_directory)
+            if path.is_absolute() or ".." in path.parts:
+                msg = f"step {self.name!r} leaves the component directory"
+                raise ValueError(msg)
+        return self
 
     def applies_to(self, platform: Platform) -> bool:
         return self.platforms is None or platform in self.platforms
@@ -71,13 +85,17 @@ class Component(_Model):
     toolchain: Toolchain
     platforms: frozenset[Platform] = Field(min_length=1)
     architectures: frozenset[Architecture] = frozenset(get_args(Architecture))
+    exclude: frozenset[Target] = frozenset()
     depends_on: tuple[str, ...] = ()
     lint: tuple[Step, ...] = ()
     test: tuple[Step, ...] = Field(min_length=1)
     accept: tuple[Step, ...] = ()
 
     @model_validator(mode="after")
-    def _steps_fit_platforms(self) -> Self:
+    def _consistent_targets(self) -> Self:
+        if not self.exclude < self._all_targets():
+            msg = "exclude must list some, not all, of the component's targets"
+            raise ValueError(msg)
         for phase in Phase:
             for step in self.steps(phase):
                 if step.platforms and not step.platforms <= self.platforms:
@@ -90,19 +108,20 @@ class Component(_Model):
 
     @property
     def targets(self) -> tuple[str, ...]:
-        return tuple(
-            sorted(
-                f"{platform}-{architecture}"
-                for platform in self.platforms
-                for architecture in self.architectures
-            )
+        return tuple(sorted(self._all_targets() - self.exclude))
+
+    def _all_targets(self) -> frozenset[str]:
+        return frozenset(
+            f"{platform}-{architecture}"
+            for platform in self.platforms
+            for architecture in self.architectures
         )
 
 
 class Settings(_Model):
     component_roots: tuple[str, ...] = Field(min_length=1)
     global_paths: tuple[str, ...] = ()
-    runners: Mapping[str, str]
+    runners: Mapping[Target, str]
     skip: Mapping[str, str] = Field(default_factory=dict)
 
     @model_validator(mode="after")

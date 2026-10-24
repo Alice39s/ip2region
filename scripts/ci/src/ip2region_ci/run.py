@@ -7,6 +7,7 @@ import sys
 from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
+from typing import cast
 
 from ip2region_ci.config import Architecture, Component, Phase, Platform, Step
 from ip2region_ci.errors import CiError
@@ -34,16 +35,21 @@ def current_architecture() -> Architecture:
             raise CiError(f"unsupported architecture: {name}")
 
 
+def current_target() -> str:
+    return f"{current_platform()}-{current_architecture()}"
+
+
 def run_component(
     component: Component,
     directory: Path,
     phases: Iterable[Phase],
-    platform: Platform | None = None,
+    target: str | None = None,
 ) -> None:
-    """Runs the steps of `phases` that apply to this platform, in order."""
-    platform = platform or current_platform()
-    if platform not in component.platforms:
-        raise CiError(f"{directory}: not supported on {platform}")
+    """Runs the steps of `phases` that apply to the target, in order."""
+    target = target or current_target()
+    if target not in component.targets:
+        raise CiError(f"{directory}: not supported on {target}")
+    platform = cast(Platform, target.partition("-")[0])
     for phase in phases:
         for step in component.steps(phase):
             if step.applies_to(platform):
@@ -52,6 +58,7 @@ def run_component(
 
 def run_step(step: Step, directory: Path) -> None:
     """Runs one step; `fail_on_output` steps also fail on any stdout."""
+    directory /= step.working_directory or ""
     command = (_executable(step.run[0], directory), *step.run[1:])
     shown = shlex.join(step.run)
     with _group(step.name):
