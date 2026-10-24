@@ -80,3 +80,9 @@ $LOGSTASH_PATH/bin/ruby -S bundle exec rspec
 ```
 
 The tests use `data/ip2region_v4.xdb` and `data/ip2region_v6.xdb` from this repository.
+
+The Dockerfile runs the tests in the official Logstash image, installs the gem with `logstash-plugin` and looks up an IPv4 and an IPv6 address in a pipeline. Build it from the repository root, optionally with another Logstash version:
+
+```bash
+docker build --file binding/logstash/Dockerfile --build-arg LOGSTASH_VERSION=8.19.23 .
+```

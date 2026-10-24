@@ -80,3 +80,9 @@ $LOGSTASH_PATH/bin/ruby -S bundle exec rspec
 ```
 
 测试使用本仓库的 `data/ip2region_v4.xdb` 和 `data/ip2region_v6.xdb`。
+
+Dockerfile 会在官方 Logstash 镜像中运行测试，用 `logstash-plugin` 安装 gem，并在 pipeline 中查询一个 IPv4 和一个 IPv6 地址。在仓库根目录构建，可以用 `LOGSTASH_VERSION` 指定其他 Logstash 版本：
+
+```bash
+docker build --file binding/logstash/Dockerfile --build-arg LOGSTASH_VERSION=8.19.23 .
+```

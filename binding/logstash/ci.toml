@@ -1,0 +1,12 @@
+toolchain = { name = "docker" }
+platforms = ["linux"]
+
+[[test]]
+name = "Test with Logstash 9"
+run = ["docker", "build", "--file", "Dockerfile", "--build-arg", "LOGSTASH_VERSION=9.5.5", "../.."]
+timeout = 1800
+
+[[test]]
+name = "Test with Logstash 8"
+run = ["docker", "build", "--file", "Dockerfile", "--build-arg", "LOGSTASH_VERSION=8.19.23", "../.."]
+timeout = 1800
