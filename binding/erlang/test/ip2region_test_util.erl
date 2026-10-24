@@ -2,6 +2,7 @@
 
 -export([
     repo_root/0,
+    v4_xdb_path/0,
     v6_xdb_path/0,
     default_db_config/0,
     reset_app/0,
@@ -18,12 +19,15 @@ repo_root() ->
     BindingDir = filename:dirname(ErlangDir),
     filename:dirname(BindingDir).
 
+v4_xdb_path() ->
+    filename:join([repo_root(), "data", "ip2region_v4.xdb"]).
+
 v6_xdb_path() ->
     filename:join([repo_root(), "data", "ip2region_v6.xdb"]).
 
 default_db_config() ->
     [
-        {ipv4, "ip2region.xdb"},
+        {ipv4, v4_xdb_path()},
         {ipv6, v6_xdb_path()}
     ].
 

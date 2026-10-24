@@ -35,14 +35,12 @@ invalid_search_test_() ->
     ].
 
 ipv6_pool_not_configured_test() ->
-    {ok, _} = ip2region_test_util:start_app([{ipv4, "ip2region.xdb"}]),
+    {ok, _} = ip2region_test_util:start_app([{ipv4, ip2region_test_util:v4_xdb_path()}]),
     ?assertEqual({error, pool_not_configured}, xdb:search("2001:4860:4860::8888")).
 
 xdb_version_mismatch_test() ->
     {ok, _} = ip2region_test_util:start_app(),
-    V4File = filename:join([
-        ip2region_test_util:repo_root(), "binding", "erlang", "priv", "ip2region.xdb"
-    ]),
+    V4File = ip2region_test_util:v4_xdb_path(),
     error_logger:tty(false),
     try
         ?assertEqual(
