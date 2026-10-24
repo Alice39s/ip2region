@@ -2,18 +2,19 @@ toolchain = { name = "python" }
 platforms = ["linux", "macos", "windows"]
 
 # The dev dependency group in pyproject.toml requires Python < 3.12.
-# --project overrides the UV_PROJECT that CI sets for ip2region-ci.
+# --project and --dev override the UV_PROJECT and UV_NO_DEV that CI sets for
+# ip2region-ci.
 [[lint]]
 name = "Check formatting"
-run = ["uv", "run", "--project", ".", "--locked", "--python", "3.11", "ruff", "format", "--check"]
+run = ["uv", "run", "--project", ".", "--dev", "--locked", "--python", "3.11", "ruff", "format", "--check"]
 
 [[lint]]
 name = "Ruff"
-run = ["uv", "run", "--project", ".", "--locked", "--python", "3.11", "ruff", "check"]
+run = ["uv", "run", "--project", ".", "--dev", "--locked", "--python", "3.11", "ruff", "check"]
 
 [[lint]]
 name = "Mypy"
-run = ["uv", "run", "--project", ".", "--locked", "--python", "3.11", "mypy"]
+run = ["uv", "run", "--project", ".", "--dev", "--locked", "--python", "3.11", "mypy"]
 
 [[test]]
 name = "Run test_version"
