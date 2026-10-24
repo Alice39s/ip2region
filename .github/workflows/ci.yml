@@ -23,7 +23,7 @@ defaults:
     shell: bash
 
 env:
-  UV_PROJECT: scripts/ci
+  UV_PROJECT: ${{ github.workspace }}/scripts/ci
 
 jobs:
   control:
@@ -46,7 +46,9 @@ jobs:
       - run: uv run ruff check
       - run: uv run pytest
       - run: uv run ip2region-ci validate
-      - run: uv run zizmor --pedantic ../../.github
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: uv run zizmor ../../.github
       - name: Run actionlint
         env:
           ACTIONLINT_VERSION: v1.7.12
