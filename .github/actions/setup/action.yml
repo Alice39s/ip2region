@@ -85,16 +85,29 @@ runs:
         rustup toolchain install "$RUST_VERSION" --profile minimal --component rustfmt,clippy
         rustup default "$RUST_VERSION"
 
+    - if: inputs.toolchain == 'lua' && runner.os == 'Windows'
+      uses: step-security/msvc-dev-cmd@22c98154b708dbd743e6f27a933cf6ceba3305c4 # v1.13.1
+      with:
+        arch: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
+
     - if: inputs.toolchain == 'lua'
       uses: leafo/gh-actions-lua@32909a2dea0a48c433aec79e7fcd31b4cd55800f # v13.1.0
       with:
         luaVersion: ${{ inputs.version }}
+
+    - if: inputs.toolchain == 'lua' && github.job == 'lint'
+      uses: leafo/gh-actions-luarocks@1c4a92caecc8f6850f673cbadfd57b3e555417ce # v6.1.1
+
+    - if: inputs.toolchain == 'lua' && github.job == 'lint'
+      shell: bash
+      run: luarocks install luacheck 1.2.0
 
     - if: inputs.toolchain == 'php'
       uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
       with:
         php-version: ${{ inputs.version }}
         coverage: none
+        tools: ${{ github.job == 'lint' && 'phpstan:2.3.1' || 'none' }}
 
     - if: inputs.toolchain == 'erlang'
       uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
