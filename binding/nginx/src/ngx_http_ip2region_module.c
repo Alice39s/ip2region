@@ -17,6 +17,8 @@ static char *ngx_http_ip2region_init(ngx_conf_t *cf,
 
 static ngx_int_t ngx_http_ip2region_variable(ngx_http_request_t *r,
     ngx_http_variable_value_t *v, uintptr_t data);
+static ngx_int_t ngx_http_ip2region_set_region(ngx_http_request_t *r,
+    ngx_http_variable_value_t *v, xdb_region_buffer_t *region);
 
 static ngx_http_module_t ngx_http_ip2region_ctx = {
     ngx_http_ip2region_add_variables,                                          /* pre configuration */
@@ -396,10 +398,7 @@ ngx_http_ip2region_variable(ngx_http_request_t *r,
                 err = xdb_search(searcher_ptr, ip_bytes, 4, &region);
             }
             if (err == 0) {
-                v->data = (unsigned char *)region.value;
-                v->len = strlen(region.value);
-                xdb_region_buffer_free(&region);
-                return NGX_OK;
+                return ngx_http_ip2region_set_region(r, v, &region);
             } else {
                 ngx_log_error(NGX_LOG_WARN, r->connection->log, 0,
                               "ip2region search failed for IPv4 address");
@@ -430,10 +429,7 @@ ngx_http_ip2region_variable(ngx_http_request_t *r,
                         err = xdb_search(searcher_ptr, ip_bytes, 4, &region);
                     }
                     if (err == 0) {
-                        v->data = (unsigned char *)region.value;
-                        v->len = strlen(region.value);
-                        xdb_region_buffer_free(&region);
-                        return NGX_OK;
+                        return ngx_http_ip2region_set_region(r, v, &region);
                     } else {
                         ngx_log_error(NGX_LOG_WARN, r->connection->log, 0,
                                       "ip2region search failed for IPv4-mapped IPv6 address");
@@ -448,10 +444,7 @@ ngx_http_ip2region_variable(ngx_http_request_t *r,
                         memcpy(ip6_bytes, p, 16);
                         err = xdb_search(searcher_ptr, ip6_bytes, 16, &region);
                         if (err == 0) {
-                            v->data = (unsigned char *)region.value;
-                            v->len = strlen(region.value);
-                            xdb_region_buffer_free(&region);
-                            return NGX_OK;
+                            return ngx_http_ip2region_set_region(r, v, &region);
                         } else {
                             ngx_log_error(NGX_LOG_WARN, r->connection->log, 0,
                                           "ip2region search failed for IPv6 address");
@@ -473,6 +466,28 @@ ngx_http_ip2region_variable(ngx_http_request_t *r,
     ngx_log_error(NGX_LOG_INFO, r->connection->log, 0,
                   "ip2region: no region found for IP address");
     v->not_found = 1;
+    return NGX_OK;
+}
+
+
+// copy the region out of the stack buffer since the value outlives the handler
+static ngx_int_t
+ngx_http_ip2region_set_region(ngx_http_request_t *r,
+    ngx_http_variable_value_t *v, xdb_region_buffer_t *region)
+{
+    v->len = ngx_strlen(region->value);
+    v->data = ngx_pnalloc(r->pool, v->len);
+    if (v->data == NULL) {
+        xdb_region_buffer_free(region);
+        return NGX_ERROR;
+    }
+
+    ngx_memcpy(v->data, region->value, v->len);
+    xdb_region_buffer_free(region);
+
+    v->valid = 1;
+    v->no_cacheable = 0;
+    v->not_found = 0;
     return NGX_OK;
 }
 
