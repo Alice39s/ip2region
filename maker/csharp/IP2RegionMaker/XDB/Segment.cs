@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,7 +12,7 @@ namespace IP2RegionMaker.XDB
 
         public uint EndIP { get; set; }
 
-        public string Region { get; set; }
+        public string Region { get; set; } = string.Empty;
 
         public List<Segment> Split()
         {
