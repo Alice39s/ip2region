@@ -1,0 +1,3 @@
+# Benches compare data/*.txt with the xdb files byte for byte.
+data/**/*.txt text eol=lf
+*.xdb binary

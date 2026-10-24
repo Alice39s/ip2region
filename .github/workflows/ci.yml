@@ -88,6 +88,8 @@ jobs:
     if: needs.plan.outputs.lint != '[]'
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
+    env:
+      UV_NO_DEV: "1"
     strategy:
       fail-fast: false
       matrix:
@@ -118,6 +120,7 @@ jobs:
     env:
       COMPONENT: ${{ matrix.component }}
       TARGET: ${{ matrix.target }}
+      UV_NO_DEV: "1"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
