@@ -31,14 +31,13 @@ RUN eval "./configure $(cat /tmp/conf_arg)"
 RUN make modules && \
     cp objs/ngx_http_ip2region_module.so /etc/nginx/modules
 
-# static analysis of the module with the nginx headers
+# static analysis of the module with its nginx compile command
 FROM build AS lint
 ARG NGINX_VERSION
-RUN apt-get install -y clang-tidy
+RUN apt-get install -y bear clang-tidy
 WORKDIR /usr/src/nginx-$NGINX_VERSION
-RUN clang-tidy --warnings-as-errors='*' /usr/src/ip2region/binding/nginx/src/ngx_http_ip2region_module.c -- \
-    -I src/core -I src/event -I src/event/modules -I src/os/unix -I src/http -I src/http/modules -I objs \
-    -I /usr/src/ip2region/binding/c/build/include
+RUN bear -- make -B modules && \
+    clang-tidy -p . --warnings-as-errors='*' /usr/src/ip2region/binding/nginx/src/ngx_http_ip2region_module.c
 
 # run the Test::Nginx suite against the module
 FROM build AS test

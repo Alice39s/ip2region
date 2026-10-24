@@ -14,5 +14,5 @@ timeout = 1800
 
 [[test]]
 name = "Run the Test::Nginx suite"
-run = ["docker", "run", "--rm", "ip2region-nginx-test"]
+run = ["docker", "run", "--rm", "--init", "ip2region-nginx-test"]
 timeout = 900

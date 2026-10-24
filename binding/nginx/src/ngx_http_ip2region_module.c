@@ -100,9 +100,7 @@ ngx_http_ip2region_init_searcher(ngx_conf_t *cf, char *db_name,
                                "failed to allocate memory for db_path");
             return NGX_CONF_ERROR;
         }
-        memset(db_path, '\0', len);
-        memcpy(db_path, ngx_cycle->conf_prefix.data, ngx_cycle->conf_prefix.len);
-        strcat(db_path, db_name);
+        ngx_snprintf((u_char *) db_path, len, "%V%s%Z", &ngx_cycle->conf_prefix, db_name);
     }
 
     ip2region_searcher = ngx_palloc(cf->pool, sizeof(ip2region_searcher_t));
@@ -439,10 +437,8 @@ ngx_http_ip2region_variable(ngx_http_request_t *r,
                 // 处理纯IPv6地址
                 if (ip2region_conf->v6_searcher != NULL) {
                     searcher_ptr = &ip2region_conf->v6_searcher->searcher;
-                    bytes_ip_t ip6_bytes[16];
                     if (p != NULL) {
-                        memcpy(ip6_bytes, p, 16);
-                        err = xdb_search(searcher_ptr, ip6_bytes, 16, &region);
+                        err = xdb_search(searcher_ptr, p, 16, &region);
                         if (err == 0) {
                             return ngx_http_ip2region_set_region(r, v, &region);
                         } else {
@@ -475,16 +471,17 @@ static ngx_int_t
 ngx_http_ip2region_set_region(ngx_http_request_t *r,
     ngx_http_variable_value_t *v, xdb_region_buffer_t *region)
 {
-    v->len = ngx_strlen(region->value);
-    v->data = ngx_pnalloc(r->pool, v->len);
+    ngx_str_t  value;
+
+    value.len = ngx_strlen(region->value);
+    value.data = (u_char *) region->value;
+    v->data = ngx_pstrdup(r->pool, &value);
+    xdb_region_buffer_free(region);
     if (v->data == NULL) {
-        xdb_region_buffer_free(region);
         return NGX_ERROR;
     }
 
-    ngx_memcpy(v->data, region->value, v->len);
-    xdb_region_buffer_free(region);
-
+    v->len = value.len;
     v->valid = 1;
     v->no_cacheable = 0;
     v->not_found = 0;
