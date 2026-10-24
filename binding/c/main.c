@@ -139,7 +139,7 @@ static char *get_line(FILE *fp, char *__dst) {
     cs = __dst;
     while ( ( c = getc( fp ) ) != EOF ) {
         if ( c == '\n' ) break;
-        *cs++ = c;
+        *cs++ = (char) c;
     }
     *cs = '\0';
 
@@ -273,8 +273,8 @@ int test_bench(int argc, char *argv[]) {
     FILE *handle;
     char line[1024] = {'\0'}, sip_str[INET6_ADDRSTRLEN+1] = {'\0'}, eip_str[INET6_ADDRSTRLEN+1] = {'\0'};
     char src_region[512] = {'\0'};
-    int count = 0, took;
-    long long s_time, t_time, c_time = 0;
+    int count = 0;
+    long long s_time, t_time, c_time = 0, took;
 
     // ip parse
     xdb_version_t *s_version, *e_version;

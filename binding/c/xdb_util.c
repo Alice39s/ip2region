@@ -72,8 +72,8 @@ XDB_PUBLIC(xdb_header_t *) xdb_load_header(FILE *handle) {
     header->end_index_ptr = xdb_le_get_uint32(header->buffer,12);
 
     // since IPv6 supporting
-    header->ip_version = xdb_le_get_uint16(header->buffer, 16);
-    header->runtime_ptr_bytes = xdb_le_get_uint16(header->buffer, 18);
+    header->ip_version = (unsigned short) xdb_le_get_uint16(header->buffer, 16);
+    header->runtime_ptr_bytes = (unsigned short) xdb_le_get_uint16(header->buffer, 18);
 
     return header;
 }
@@ -313,7 +313,7 @@ XDB_PUBLIC(int) xdb_version_is_v6(const xdb_version_t *version) {
 XDB_PUBLIC(xdb_version_t *) xdb_version_from_name(char *name) {
     // to upper case the name
     for (int i = 0; name[i] != '\0'; i++) {
-        name[i] = toupper((unsigned char) name[i]);
+        name[i] = (char) toupper((unsigned char) name[i]);
     }
 
     if (strcmp(name, "V4") == 0 || strcmp(name, "IPV4") == 0) {
