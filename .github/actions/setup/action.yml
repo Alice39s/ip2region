@@ -21,6 +21,25 @@ runs:
         enable-cache: true
         cache-dependency-glob: scripts/ci/uv.lock
 
+    - if: inputs.toolchain == 'cangjie'
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ runner.temp }}/cangjie-sdk
+        key: cangjie-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/ci/src/ip2region_ci/cangjie.py') }}
+
+    - if: inputs.toolchain == 'cangjie'
+      shell: bash
+      env:
+        SDK: ${{ runner.temp }}/cangjie-sdk
+      run: | # zizmor: ignore[github-env] the paths come from the pinned SDK
+        envsetup="$(uv run ip2region-ci install-cangjie "$SDK")"
+        # shellcheck disable=SC1090
+        source "$envsetup"
+        echo "$CANGJIE_HOME/bin" >> "$GITHUB_PATH"
+        echo "$CANGJIE_HOME/tools/bin" >> "$GITHUB_PATH"
+        echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> "$GITHUB_ENV"
+        echo "CANGJIE_HOME=$CANGJIE_HOME" >> "$GITHUB_ENV"
+
     - if: inputs.toolchain == 'go'
       uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
       with:
