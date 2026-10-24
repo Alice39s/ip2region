@@ -1,5 +1,18 @@
 toolchain = { name = "python" }
-platforms = ["linux"]
+platforms = ["linux", "macos", "windows"]
+
+# The dev dependency group in pyproject.toml requires Python < 3.12.
+[[lint]]
+name = "Check formatting"
+run = ["uv", "run", "--locked", "--python", "3.11", "ruff", "format", "--check"]
+
+[[lint]]
+name = "Ruff"
+run = ["uv", "run", "--locked", "--python", "3.11", "ruff", "check"]
+
+[[lint]]
+name = "Mypy"
+run = ["uv", "run", "--locked", "--python", "3.11", "mypy"]
 
 [[test]]
 name = "Run test_version"
@@ -32,3 +45,13 @@ run = ["uv", "run", "--no-project", "--python", "3.14", "python", "util_test.py"
 [[test]]
 name = "Run test_ip_search"
 run = ["uv", "run", "--no-project", "--python", "3.14", "python", "util_test.py", "test_ip_search"]
+
+[[accept]]
+name = "Bench the IPv4 xdb against its source"
+run = ["uv", "run", "--no-project", "--python", "3.14", "python", "bench_test.py", "--db=../../data/ip2region_v4.xdb", "--src=../../data/ipv4_source.txt"]
+timeout = 1800
+
+[[accept]]
+name = "Bench the IPv6 xdb against its source"
+run = ["uv", "run", "--no-project", "--python", "3.14", "python", "bench_test.py", "--db=../../data/ip2region_v6.xdb", "--src=../../data/ipv6_source.txt"]
+timeout = 1800
