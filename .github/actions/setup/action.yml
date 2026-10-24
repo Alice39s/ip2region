@@ -94,6 +94,7 @@ runs:
       with:
         php-version: ${{ inputs.version }}
         coverage: none
+        tools: ${{ github.job == 'lint' && 'phpstan:2.3.1' || 'none' }}
 
     - if: inputs.toolchain == 'erlang'
       uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
