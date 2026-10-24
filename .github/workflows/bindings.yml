@@ -130,3 +130,16 @@ jobs:
       - run: uv run ip2region-ci check-architecture "${TARGET#*-}"
       - run: uv run ip2region-ci run "$COMPONENT" test
       - run: uv run ip2region-ci run "$COMPONENT" accept
+
+  result:
+    name: Result
+    needs: [control, plan, lint, test]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "$RESULTS"
+          [[ " $RESULTS " != *" failure "* && " $RESULTS " != *" cancelled "* ]]
