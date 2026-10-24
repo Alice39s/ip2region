@@ -4,6 +4,10 @@ platforms = ["linux", "macos", "windows"]
 exclude = ["windows-arm64"]
 
 [[lint]]
+name = "Check formatting"
+run = ["rebar3", "fmt", "--check"]
+
+[[lint]]
 name = "Xref"
 run = ["rebar3", "xref"]
 

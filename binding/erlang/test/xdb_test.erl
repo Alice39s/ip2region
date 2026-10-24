@@ -9,7 +9,7 @@ search_test_() ->
     A = "中国|广东省|广州市|中国电信|CN",
     Region0 = xdb:search("1.0.8.0"),
     Region1 = xdb:search(<<"1.0.8.0">>),
-    Region2 = xdb:search({1,0,8,0}),
+    Region2 = xdb:search({1, 0, 8, 0}),
     Region3 = xdb:search("xxx.0.8.0"),
     [
         ?_assert(A =:= Region0),
@@ -31,7 +31,7 @@ invalid_search_test_() ->
     [
         ?_assertEqual({error, bad_ip_format}, xdb:search("xxx.0.8.0")),
         ?_assertEqual({error, bad_ip_format}, xdb:search("::ggg")),
-        ?_assertEqual({error, bad_ip_format}, xdb:search({1,2,3}))
+        ?_assertEqual({error, bad_ip_format}, xdb:search({1, 2, 3}))
     ].
 
 ipv6_pool_not_configured_test() ->

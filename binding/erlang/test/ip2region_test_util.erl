@@ -32,8 +32,16 @@ default_db_config() ->
     ].
 
 reset_app() ->
-    try application:stop(ip2region) catch _:_ -> ok end,
-    try application:unload(ip2region) catch _:_ -> ok end,
+    try
+        application:stop(ip2region)
+    catch
+        _:_ -> ok
+    end,
+    try
+        application:unload(ip2region)
+    catch
+        _:_ -> ok
+    end,
     ok.
 
 load_app() ->
